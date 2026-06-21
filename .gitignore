@@ -1,0 +1,15 @@
+# .NET
+**/bin/
+**/obj/
+**/appsettings.json
+**/appsettings.*.json
+
+# Node
+node_modules/
+frontend/dist/
+
+# 기타
+.env
+*.user
+.vs/
+logs/

@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <!-- 녹색 원형 배경 -->
+  <circle cx="60" cy="60" r="58" fill="#16a34a"/>
+
+  <!-- 왼쪽 패들 -->
+  <g transform="translate(60,58) rotate(-35)">
+    <ellipse cx="0" cy="-22" rx="18" ry="22" fill="white"/>
+    <!-- 구멍들 -->
+    <circle cx="-8" cy="-28" r="3" fill="#16a34a"/>
+    <circle cx="0" cy="-28" r="3" fill="#16a34a"/>
+    <circle cx="8" cy="-28" r="3" fill="#16a34a"/>
+    <circle cx="-8" cy="-20" r="3" fill="#16a34a"/>
+    <circle cx="0" cy="-20" r="3" fill="#16a34a"/>
+    <circle cx="8" cy="-20" r="3" fill="#16a34a"/>
+    <circle cx="-4" cy="-12" r="3" fill="#16a34a"/>
+    <circle cx="4" cy="-12" r="3" fill="#16a34a"/>
+    <!-- 손잡이 -->
+    <rect x="-5" y="0" width="10" height="22" rx="5" fill="white"/>
+  </g>
+
+  <!-- 오른쪽 패들 -->
+  <g transform="translate(60,58) rotate(35) scale(-1,1)">
+    <ellipse cx="0" cy="-22" rx="18" ry="22" fill="white"/>
+    <circle cx="-8" cy="-28" r="3" fill="#16a34a"/>
+    <circle cx="0" cy="-28" r="3" fill="#16a34a"/>
+    <circle cx="8" cy="-28" r="3" fill="#16a34a"/>
+    <circle cx="-8" cy="-20" r="3" fill="#16a34a"/>
+    <circle cx="0" cy="-20" r="3" fill="#16a34a"/>
+    <circle cx="8" cy="-20" r="3" fill="#16a34a"/>
+    <circle cx="-4" cy="-12" r="3" fill="#16a34a"/>
+    <circle cx="4" cy="-12" r="3" fill="#16a34a"/>
+    <rect x="-5" y="0" width="10" height="22" rx="5" fill="white"/>
+  </g>
+
+  <!-- 공 -->
+  <circle cx="60" cy="36" r="10" fill="white"/>
+  <path d="M52 34 Q60 30 68 34" fill="none" stroke="#16a34a" stroke-width="1.5"/>
+  <path d="M52 38 Q60 42 68 38" fill="none" stroke="#16a34a" stroke-width="1.5"/>
+</svg>
