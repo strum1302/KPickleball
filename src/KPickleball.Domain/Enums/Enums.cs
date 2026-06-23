@@ -20,7 +20,8 @@ public enum BoardCategory
     Free = 1,
     Tournament = 2,
     Marketplace = 3,
-    Court = 4
+    Court = 4,
+    ClubNews = 5
 }
 public enum VideoCategory
 {
