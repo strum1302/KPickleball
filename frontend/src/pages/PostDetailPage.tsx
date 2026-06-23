@@ -117,7 +117,7 @@ export default function PostDetailPage() {
   onError: () => toast.error('댓글 삭제에 실패했습니다.'),
 })
 
-  const likeMutation = useMutation({
+const likeMutation = useMutation({
     mutationFn: () => postsApi.like(Number(id)),
     onSuccess: () => {
       setIsLiked(!isLiked)
@@ -125,6 +125,14 @@ export default function PostDetailPage() {
     },
   })
 
+  const pinMutation = useMutation({
+    mutationFn: () => postsApi.togglePin(Number(id)),
+    onSuccess: (res) => {
+      toast.success(res.data.isPinned ? '상단에 고정됐습니다.' : '고정이 해제됐습니다.')
+      queryClient.invalidateQueries({ queryKey: ['post', id] })
+    },
+    onError: () => toast.error('고정 처리에 실패했습니다.'),
+  })
   const handleCommentSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!comment.trim()) return
@@ -181,9 +189,21 @@ export default function PostDetailPage() {
               </h1>
             </div>
 
-            {/* 수정/삭제 버튼 */}
+           {/* 수정/삭제 버튼 */}
             {(isAuthor || isAdmin) && (
               <div className="flex gap-2 flex-shrink-0">
+                {isAdmin && (
+                  <button
+                    onClick={() => pinMutation.mutate()}
+                    disabled={pinMutation.isPending}
+                    className={`flex items-center gap-1 text-xs px-3 py-1.5 border rounded-lg transition-colors disabled:opacity-50 ${
+                      post.isPinned
+                        ? 'text-yellow-600 border-yellow-300 bg-yellow-50 hover:bg-yellow-100'
+                        : 'text-gray-500 border-gray-200 hover:border-yellow-300 hover:text-yellow-600'
+                    }`}>
+                    📌 {post.isPinned ? '고정 해제' : '상단고정'}
+                  </button>
+                )}
                 {isAuthor && (
                   <Link to={`/board/edit/${id}`}
                     className="flex items-center gap-1 text-xs text-gray-500 hover:text-blue-500 px-3 py-1.5 border border-gray-200 rounded-lg hover:border-blue-300 transition-colors">
