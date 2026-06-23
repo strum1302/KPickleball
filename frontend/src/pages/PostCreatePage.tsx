@@ -2,10 +2,11 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import { postsApi } from '../api'
+import { useAuthStore } from '../store/authStore'
 import { ArrowLeft } from 'lucide-react'
 import toast from 'react-hot-toast'
 
-const CATEGORIES = [
+const BASE_CATEGORIES = [
   { value: 1, label: '자유게시판' },
   { value: 2, label: '대회정보' },
   { value: 3, label: '용품거래' },
@@ -13,8 +14,13 @@ const CATEGORIES = [
   { value: 5, label: '클럽소식' },
 ]
 
+const NOTICE_CATEGORY = { value: 0, label: '공지사항' }
+
 export default function PostCreatePage() {
   const navigate = useNavigate()
+  const { user } = useAuthStore()
+  const isAdmin = user?.role === 'Admin'
+  const CATEGORIES = isAdmin ? [NOTICE_CATEGORY, ...BASE_CATEGORIES] : BASE_CATEGORIES
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [category, setCategory] = useState<number>(1)
