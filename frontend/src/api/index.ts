@@ -58,6 +58,7 @@ create: (data: { title: string; content: string; category: number }) =>
     api.put(`/posts/${id}`, data),
   delete: (id: number) => api.delete(`/posts/${id}`),
   like: (id: number) => api.post(`/posts/${id}/like`),
+  togglePin: (id: number) => api.put(`/posts/${id}/pin`),
   createComment: (postId: number, data: { content: string; parentCommentId?: number }) =>
     api.post(`/posts/${postId}/comments`, data),
   deleteComment: (postId: number, commentId: number) =>
