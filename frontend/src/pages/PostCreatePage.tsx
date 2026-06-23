@@ -10,6 +10,7 @@ const CATEGORIES = [
   { value: 2, label: '대회정보' },
   { value: 3, label: '용품거래' },
   { value: 4, label: '코트정보' },
+  { value: 5, label: '클럽소식' },
 ]
 
 export default function PostCreatePage() {

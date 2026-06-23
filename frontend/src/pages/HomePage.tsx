@@ -4,12 +4,6 @@ import { useQuery } from '@tanstack/react-query'
 import { postsApi } from '../api'
 
 // 샘플 클럽소식 (나중에 DB 연동)
-const clubNews = [
-  { id: 1, title: '[시카고 클럽] 주말 정기 모임 안내', date: '2026-05-27' },
-  { id: 2, title: '[LA 클럽] 신규 회원 모집 중', date: '2026-05-25' },
-  { id: 3, title: '[뉴욕 클럽] 대회 참가 후기', date: '2026-05-22' },
-  { id: 4, title: '[달라스 클럽] 코트 예약 안내', date: '2026-05-18' },
-]
 
 const tournamentResults = [
   { id: 1, title: '2026 제1차 협회장배 남자 단식 결과', date: '2026-05-15' },
@@ -59,13 +53,19 @@ export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0)
   const [imgErrors, setImgErrors] = useState<boolean[]>([false, false, false])
 
-  // 공지사항 DB에서 가져오기 (category: 0 = Notice)
+// 공지사항 DB에서 가져오기 (category: 0 = Notice)
   const { data: noticeData } = useQuery({
     queryKey: ['notices'],
     queryFn: () => postsApi.getList({ category: '0', page: 1, pageSize: 5 })
       .then(r => r.data),
   })
 
+  // 클럽소식 DB에서 가져오기 (category: 5 = ClubNews)
+  const { data: clubNewsData } = useQuery({
+    queryKey: ['clubNews'],
+    queryFn: () => postsApi.getList({ category: '5', page: 1, pageSize: 5 })
+      .then(r => r.data),
+  })
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide(prev => (prev + 1) % bannerSlides.length)
@@ -95,6 +95,20 @@ export default function HomePage() {
         { id: 3, title: '신규 회원 등록 안내 및 혜택', date: '2026-05-15', isNew: false },
         { id: 4, title: '5월 정기 모임 결과 보고', date: '2026-05-10', isNew: false },
         { id: 5, title: '피클볼 장비 공동구매 안내', date: '2026-05-05', isNew: false },
+      ]
+
+      // 클럽소식 - DB 데이터 또는 샘플 데이터
+  const clubNews = clubNewsData?.items?.length > 0
+    ? clubNewsData.items.map((p: any) => ({
+        id: p.id,
+        title: p.title,
+        date: p.createdAt?.slice(0, 10) || '',
+      }))
+    : [
+        { id: 1, title: '[시카고 클럽] 주말 정기 모임 안내', date: '2026-05-27' },
+        { id: 2, title: '[LA 클럽] 신규 회원 모집 중', date: '2026-05-25' },
+        { id: 3, title: '[뉴욕 클럽] 대회 참가 후기', date: '2026-05-22' },
+        { id: 4, title: '[달라스 클럽] 코트 예약 안내', date: '2026-05-18' },
       ]
 
   return (
@@ -205,12 +219,12 @@ export default function HomePage() {
                 <span className="w-1 h-5 bg-blue-600 rounded-full inline-block"></span>
                 클럽 소식
               </h3>
-              <Link to="/clubs" className="text-xs text-gray-500 hover:text-blue-600">더보기 +</Link>
+              <Link to="/board?category=5" className="text-xs text-gray-500 hover:text-blue-600">더보기 +</Link>
             </div>
             <ul className="divide-y divide-gray-100">
-              {clubNews.map(n => (
+           {clubNews.map((n: any) => (
                 <li key={n.id}>
-                  <Link to="/clubs"
+                  <Link to={`/board/${n.id}`}
                     className="flex items-center justify-between px-4 py-2.5 hover:bg-blue-50 transition-colors group">
                     <span className="text-sm text-gray-700 group-hover:text-blue-700 truncate">{n.title}</span>
                     <span className="text-xs text-gray-400 flex-shrink-0 ml-2">{n.date.slice(5)}</span>
@@ -246,25 +260,7 @@ export default function HomePage() {
           </ul>
         </div>
 
-        {/* 갤러리 */}
-        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden mb-6">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gray-50">
-            <h3 className="font-bold text-gray-800 flex items-center gap-2">
-              <span className="w-1 h-5 bg-purple-500 rounded-full inline-block"></span>
-              갤러리
-            </h3>
-            <Link to="/videos" className="text-xs text-gray-500 hover:text-purple-600">더보기 +</Link>
-          </div>
-          <div className="grid grid-cols-3 md:grid-cols-6 gap-2 p-3">
-            {galleryImages.map(img => (
-              <Link key={img.id} to="/videos"
-                className="aspect-square bg-gray-100 rounded-lg flex flex-col items-center justify-center hover:bg-green-50 transition-colors group">
-                <span className="text-3xl mb-1">{img.emoji}</span>
-                <span className="text-xs text-gray-500 group-hover:text-green-600 text-center px-1 leading-tight">{img.title}</span>
-              </Link>
-            ))}
-          </div>
-        </div>
+       {/* 갤러리 - 임시 숨김 처리 (추후 활성화 예정) */}
 
         {/* 하단 바로가기 */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
