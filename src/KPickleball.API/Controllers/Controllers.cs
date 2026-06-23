@@ -162,6 +162,18 @@ public class PostsController : ControllerBase
     }
 
 
+    [Authorize(Roles = "Admin")]
+    [HttpPut("{id}/pin")]
+    public async Task<IActionResult> TogglePin(int id)
+    {
+        var post = await _postRepo.GetByIdAsync(id);
+        if (post == null) return NotFound();
+
+        post.IsPinned = !post.IsPinned;
+        await _postRepo.SaveChangesAsync();
+        return Ok(new { isPinned = post.IsPinned });
+    }
+
     // ── 댓글 작성 ─────────────────────────────────────
     [Authorize]
     [HttpPost("{postId}/comments")]
