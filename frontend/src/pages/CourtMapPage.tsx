@@ -1,53 +1,40 @@
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
 import { useQuery } from '@tanstack/react-query';
-import { courtsApi } from '../api'; // Importing your centralized API client
+import { courtApi } from '../api/courtApi'; // 여러분의 API 호출부
 
-export default function CourtMapPage() {
-  // TanStack Query handles the state, while your axios client fetches the data!
-  const { data: courts, isLoading, error } = useQuery({
-    queryKey: ['courts'],
-    queryFn: async () => {
-      const response = await courtsApi.getAll();
-      return response.data; // Axios wraps the API response inside the 'data' property
-    },
+const CourtMapPage = () => {
+  const { data: courts } = useQuery({ 
+    queryKey: ['courts'], 
+    queryFn: () => courtApi.getAll() 
   });
 
   return (
-    <div className="flex h-[calc(100vh-80px)] w-full bg-gray-50">
-      
-      {/* LEFT SIDEBAR: Court List */}
-      <div className="w-1/3 min-w-[350px] bg-white p-6 overflow-y-auto shadow-lg z-10">
-        <h2 className="text-2xl font-bold mb-6 text-gray-800">코트 찾기 (Find a Court)</h2>
-        
-        {/* State Handling */}
-        {isLoading && <p className="text-gray-500 animate-pulse">데이터를 불러오는 중입니다...</p>}
-        {error && <p className="text-red-500">코트 정보를 불러오는데 실패했습니다.</p>}
-        {!isLoading && !error && courts?.length === 0 && (
-          <p className="text-gray-500">등록된 코트가 없습니다.</p>
-        )}
+    <div className="flex h-screen p-4 gap-4 bg-gray-50">
+      {/* 왼쪽 목록 영역 */}
+      <div className="w-1/3 overflow-y-auto space-y-4">
+        <h2 className="text-2xl font-bold mb-4">코트 찾기 (Find a Court)</h2>
+        {courts?.map((court: any) => (
+          <div key={court.id} className="p-4 bg-white rounded-xl shadow-sm border border-gray-200 hover:border-green-500 transition-all cursor-pointer">
+            <h3 className="font-bold text-lg text-green-700">{court.name}</h3>
+            <p className="text-sm text-gray-600">{court.address}</p>
+          </div>
+        ))}
+      </div>
 
-        {/* The List */}
-        <ul className="space-y-4">
+      {/* 오른쪽 지도 영역 */}
+      <div className="w-2/3 h-full rounded-2xl overflow-hidden shadow-lg border border-gray-200">
+        <MapContainer center={[42.0808, -87.8963]} zoom={13} className="h-full w-full">
+          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
           {courts?.map((court: any) => (
-            <li 
-              key={court.id} 
-              className="p-4 border rounded-xl hover:border-green-500 hover:shadow-md cursor-pointer transition-all bg-white"
-            >
-              <h3 className="font-semibold text-lg text-gray-800">{court.name}</h3>
-              <p className="text-sm text-gray-600 mt-1">{court.address}</p>
-            </li>
+            <Marker key={court.id} position={[court.latitude, court.longitude]}>
+              <Popup>{court.name}</Popup>
+            </Marker>
           ))}
-        </ul>
+        </MapContainer>
       </div>
-
-      {/* RIGHT AREA: The Map */}
-      <div className="flex-1 bg-gray-200 relative flex items-center justify-center">
-        {/* MAP LIBRARY PLACEHOLDER */}
-        <div className="text-center">
-          <p className="text-2xl text-gray-500 font-bold mb-2">지도 영역 (Map Area)</p>
-          <p className="text-gray-400">Interactive Map Component will be injected here.</p>
-        </div>
-      </div>
-
     </div>
   );
-}
+};
+
+export default CourtMapPage;
