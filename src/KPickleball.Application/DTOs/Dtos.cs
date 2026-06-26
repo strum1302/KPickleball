@@ -168,3 +168,40 @@ public record PagedResultDto<T>(
     int PageSize,
     int TotalPages
 );
+public class CourtListDtopublic record CourtListDto(
+    int Id,
+    string Name,
+    string Address,
+    string State,
+    string City,
+    double Latitude,
+    double Longitude,
+    int NumberOfCourts,
+    bool IsIndoor,
+    bool IsFree,
+    int ReviewCount,
+    double AverageRating
+);
+
+public record CourtDetailDto(
+    int Id,
+    string Name,
+    string Address,
+    string State,
+    string City,
+    double Latitude,
+    double Longitude,
+    int NumberOfCourts,
+    bool IsIndoor,
+    bool IsFree,
+    string? Notes,
+    int ReviewCount,
+    double AverageRating,
+    List<CourtReviewDto> Reviews
+);
+
+public record CourtReviewDto(
+    int Rating,
+    string? Comment,
+    int UserId
+);

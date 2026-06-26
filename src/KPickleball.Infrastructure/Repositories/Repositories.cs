@@ -50,6 +50,7 @@ public class Repository<T> : IRepository<T> where T : Domain.Common.BaseEntity
         => await _db.SaveChangesAsync();
 }
 
+
 // ── User Repository ───────────────────────────────
 public class UserRepository : Repository<User>, IUserRepository
 {
@@ -67,6 +68,25 @@ public class UserRepository : Repository<User>, IUserRepository
     public async Task<bool> NicknameExistsAsync(string nickname)
         => await _db.Users.AnyAsync(u => u.Nickname == nickname);
 }
+public class CourtRepository : Repository<Court>, ICourtRepository
+{
+    // 한 줄 생성자 패턴 적용
+    public CourtRepository(AppDbContext db) : base(db) { }
+
+    public async Task<(List<Court> Courts, int Total)> GetPagedAsync(string? state, int page, int pageSize)
+    {
+        var query = _db.Courts.Include(c => c.Reviews).AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(state))
+            query = query.Where(c => c.State.ToLower() == state.ToLower());
+
+        int total = await query.CountAsync();
+        var courts = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+
+        return (courts, total);
+    }
+}
+
 
 // ── Post Repository ───────────────────────────────
 public class PostRepository : Repository<Post>, IPostRepository

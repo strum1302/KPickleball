@@ -280,3 +280,22 @@ public class VideosController : ControllerBase
         return CreatedAtAction(nameof(GetVideos), new { id = video.Id }, video.Id);
     }
 }
+[ApiController]
+[Route("api/[controller]")]
+public class CourtsController : ControllerBase
+{
+    private readonly ICourtService _courtService;
+
+    public CourtsController(ICourtService courtService) => _courtService = courtService;
+
+    [HttpGet]
+    public async Task<IActionResult> GetAllCourts([FromQuery] string? state) 
+        => Ok(await _courtService.GetAllCourtsAsync(state)); // React는 여기서 CourtListDto 배열을 받습니다.
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetCourtById(int id)
+    {
+        var courtDto = await _courtService.GetCourtByIdAsync(id);
+        return courtDto == null ? NotFound(new { message = "코트를 찾을 수 없습니다." }) : Ok(courtDto);
+    }
+}

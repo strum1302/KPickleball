@@ -11,8 +11,16 @@ public interface IAuthService
     Task<AuthResponseDto> GoogleLoginAsync(string idToken);
     string GenerateAccessToken(User user);
     string GenerateRefreshToken();
+ 
 }
 
+
+public interface ICourtService
+{
+    // 반환 타입이 DTO입니다!
+    Task<IEnumerable<CourtListDto>> GetAllCourtsAsync(string? state);
+    Task<CourtDetailDto?> GetCourtByIdAsync(int id);
+}
 public interface ITokenService
 {
     string GenerateAccessToken(User user);
