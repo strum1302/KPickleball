@@ -47,3 +47,8 @@ public interface ITournamentRepository : IRepository<Domain.Entities.Tournament>
     Task<(List<Domain.Entities.Tournament> Tournaments, int Total)> GetPagedAsync(
         string? state, int page, int pageSize);
 }
+public interface ICourtRepository  : IRepository<Domain.Entities.Court>  
+{
+   Task<IEnumerable<Domain.Entities.Court>> GetAllCourtsAsync(string? state);
+    Task<Domain.Entities.Court?> GetCourtByIdAsync(int id);
+}
