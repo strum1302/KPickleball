@@ -1,19 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
-
-// TODO: Replace this with your actual API calling function
-const fetchCourts = async () => {
-  const response = await fetch('http://localhost:5000/api/courts');
-  if (!response.ok) {
-    throw new Error('Network response was not ok');
-  }
-  return response.json();
-};
+import { courtsApi } from '../api'; // Importing your centralized API client
 
 export default function CourtMapPage() {
-  // TanStack Query handles our state!
+  // TanStack Query handles the state, while your axios client fetches the data!
   const { data: courts, isLoading, error } = useQuery({
     queryKey: ['courts'],
-    queryFn: fetchCourts,
+    queryFn: async () => {
+      const response = await courtsApi.getAll();
+      return response.data; // Axios wraps the API response inside the 'data' property
+    },
   });
 
   return (
@@ -26,7 +21,9 @@ export default function CourtMapPage() {
         {/* State Handling */}
         {isLoading && <p className="text-gray-500 animate-pulse">데이터를 불러오는 중입니다...</p>}
         {error && <p className="text-red-500">코트 정보를 불러오는데 실패했습니다.</p>}
-        {courts?.length === 0 && <p className="text-gray-500">등록된 코트가 없습니다.</p>}
+        {!isLoading && !error && courts?.length === 0 && (
+          <p className="text-gray-500">등록된 코트가 없습니다.</p>
+        )}
 
         {/* The List */}
         <ul className="space-y-4">
@@ -37,7 +34,6 @@ export default function CourtMapPage() {
             >
               <h3 className="font-semibold text-lg text-gray-800">{court.name}</h3>
               <p className="text-sm text-gray-600 mt-1">{court.address}</p>
-              {/* Add more details here later like court type, indoor/outdoor, etc. */}
             </li>
           ))}
         </ul>
