@@ -85,6 +85,7 @@ builder.Services.AddScoped<IPostRepository, KPickleball.Infrastructure.Repositor
 builder.Services.AddScoped<IVideoRepository, KPickleball.Infrastructure.Repositories.VideoRepository>();
 builder.Services.AddScoped<IClubRepository, KPickleball.Infrastructure.Repositories.ClubRepository>();
 builder.Services.AddScoped<ITournamentRepository, KPickleball.Infrastructure.Repositories.TournamentRepository>();
+builder.Services.AddScoped<ICourtRepository, KPickleball.Infrastructure.Repositories.CourtRepository>();
 
 // ── SignalR ───────────────────────────────────────
 builder.Services.AddSignalR();
