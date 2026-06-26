@@ -9,6 +9,7 @@ using Microsoft.OpenApi.Models;
 using Serilog;
 using KPickleball.API.Hubs;
 using KPickleball.API.Middleware;
+using KPickleball.Application.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -78,7 +79,7 @@ builder.Services.AddCors(options =>
 // ── DI - Services ────────────────────────────────
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IYouTubeService, YouTubeService>();
-
+builder.Services.AddScoped<ICourtService, CourtService>();
 // ── DI - Repositories ────────────────────────────
 builder.Services.AddScoped<IUserRepository, KPickleball.Infrastructure.Repositories.UserRepository>();
 builder.Services.AddScoped<IPostRepository, KPickleball.Infrastructure.Repositories.PostRepository>();
