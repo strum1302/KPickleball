@@ -168,7 +168,7 @@ public record PagedResultDto<T>(
     int PageSize,
     int TotalPages
 );
-public class CourtListDtopublic record CourtListDto(
+public record CourtListDto(
     int Id,
     string Name,
     string Address,

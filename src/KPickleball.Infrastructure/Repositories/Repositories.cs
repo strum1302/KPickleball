@@ -71,8 +71,18 @@ public class UserRepository : Repository<User>, IUserRepository
 public class CourtRepository : Repository<Court>, ICourtRepository
 {
     // 한 줄 생성자 패턴 적용
+    // 요청하신 생성자 패턴 적용
     public CourtRepository(AppDbContext db) : base(db) { }
 
+    // 엔티티 리스트를 반환
+    public new async Task<IEnumerable<Court>> GetAllAsync()
+        => await _db.Courts.Include(c => c.Reviews).ToListAsync();
+
+    // 엔티티 하나를 반환
+    public new async Task<Court?> GetByIdAsync(int id)
+        => await _db.Courts.Include(c => c.Reviews).FirstOrDefaultAsync(c => c.Id == id);
+
+    // 페이징 처리된 엔티티 반환
     public async Task<(List<Court> Courts, int Total)> GetPagedAsync(string? state, int page, int pageSize)
     {
         var query = _db.Courts.Include(c => c.Reviews).AsQueryable();
@@ -81,10 +91,15 @@ public class CourtRepository : Repository<Court>, ICourtRepository
             query = query.Where(c => c.State.ToLower() == state.ToLower());
 
         int total = await query.CountAsync();
-        var courts = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+        
+        var courts = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
 
         return (courts, total);
     }
+
 }
 
 
