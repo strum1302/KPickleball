@@ -4,7 +4,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { courtApi } from '../api/courtApi';
 
-// 아이콘 설정 (전역 실행)
+// 아이콘 설정
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
@@ -21,7 +21,6 @@ const CourtMapPage = () => {
   if (isLoading) return <div>로딩 중...</div>;
 
   return (
-    // 중요: 전체 화면 높이를 보장하고 flex를 사용합니다.
     <div className="flex w-full h-[calc(100vh-100px)] p-4 gap-4">
       {/* 왼쪽 리스트 */}
       <div className="w-1/3 overflow-y-auto">
@@ -36,15 +35,18 @@ const CourtMapPage = () => {
         </ul>
       </div>
 
-      {/* 오른쪽 지도: 높이를 강제로 100%로 설정 */}
-      <div className="w-2/3 h-full rounded-2xl overflow-hidden shadow-lg border">
+      {/* 오른쪽 지도 - 높이를 명시적으로 설정 */}
+      <div className="w-2/3 rounded-2xl overflow-hidden shadow-lg border" style={{ height: '100%' }}>
         {courts && courts.length > 0 ? (
           <MapContainer 
             center={[courts[0].latitude, courts[0].longitude]} 
             zoom={13} 
-            className="w-full h-full"
+            style={{ width: '100%', height: '100%' }} // ✅ inline style 추가
           >
-            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+            <TileLayer 
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='&copy; OpenStreetMap contributors' // ✅ attribution 추가
+            />
             {courts.map((court: any) => (
               <Marker key={court.id} position={[court.latitude, court.longitude]}>
                 <Popup>{court.name}</Popup>
@@ -52,7 +54,9 @@ const CourtMapPage = () => {
             ))}
           </MapContainer>
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gray-100">지도를 불러올 수 없습니다.</div>
+          <div className="w-full h-full flex items-center justify-center bg-gray-100">
+            지도를 불러올 수 없습니다.
+          </div>
         )}
       </div>
     </div>
