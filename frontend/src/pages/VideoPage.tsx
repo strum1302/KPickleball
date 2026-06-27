@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { videosApi } from '../api'
 import type { VideoCategory, VideoList } from '../types'
-import { Play, Plus, Eye } from 'lucide-react'
+import { Play, Plus, Eye, ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { useAuthStore } from '../store/authStore'
 import { formatDistanceToNow } from 'date-fns'
 
@@ -146,14 +146,80 @@ function AddVideoModal({ onClose, onSuccess }: { onClose: () => void; onSuccess:
   )
 }
 
-// 사진 라이트박스
-function PhotoLightbox({ photo, onClose }: { photo: { url: string; title: string }; onClose: () => void }) {
+// 사진 라이트박스 - 개선됨
+function PhotoLightbox({ 
+  photos, 
+  initialIndex, 
+  onClose 
+}: { 
+  photos: typeof photoGallery; 
+  initialIndex: number; 
+  onClose: () => void 
+}) {
+  const [idx, setIdx] = useState(initialIndex);
+
+  const handlePrev = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIdx((prev) => (prev === 0 ? photos.length - 1 : prev - 1));
+  };
+
+  const handleNext = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIdx((prev) => (prev === photos.length - 1 ? 0 : prev + 1));
+  };
+
+  const handleClose = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onClose();
+  };
+
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="max-w-4xl w-full" onClick={e => e.stopPropagation()}>
-        <img src={photo.url} alt={photo.title} className="w-full rounded-lg" />
-        <p className="text-white text-center mt-3 text-sm">{photo.title}</p>
+    <div 
+      className="fixed inset-0 bg-black/95 flex items-center justify-center z-50 p-4" 
+      onClick={onClose}
+    >
+      {/* 닫기 버튼 */}
+      <button 
+        onClick={handleClose}
+        className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors z-10"
+        aria-label="닫기"
+      >
+        <X size={32} />
+      </button>
+      
+      {/* 이전 버튼 */}
+      <button 
+        onClick={handlePrev}
+        className="absolute left-4 text-white hover:text-gray-300 transition-colors hover:scale-110"
+        aria-label="이전 사진"
+      >
+        <ChevronLeft size={40} />
+      </button>
+      
+      {/* 이미지 영역 */}
+      <div 
+        className="max-w-5xl w-full flex flex-col items-center" 
+        onClick={e => e.stopPropagation()}
+      >
+        <img 
+          src={photos[idx].url} 
+          alt={photos[idx].title} 
+          className="w-full h-auto max-h-[80vh] object-contain rounded-lg shadow-2xl"
+        />
+        <div className="mt-4 text-center">
+          <p className="text-white text-lg font-medium mb-2">{photos[idx].title}</p>
+          <p className="text-gray-400 text-sm">{idx + 1} / {photos.length}</p>
+        </div>
       </div>
+
+      {/* 다음 버튼 */}
+      <button 
+        onClick={handleNext}
+        className="absolute right-4 text-white hover:text-gray-300 transition-colors hover:scale-110"
+        aria-label="다음 사진"
+      >
+        <ChevronRight size={40} />
+      </button>
     </div>
   )
 }
@@ -161,17 +227,30 @@ function PhotoLightbox({ photo, onClose }: { photo: { url: string; title: string
 export default function VideoPage() {
   const [tab, setTab] = useState<'video' | 'photo'>('video')
   const [category, setCategory] = useState<VideoCategory | ''>('')
-  const [page, setPage] = useState(1)
+  const [videoPage, setVideoPage] = useState(1)
+  const [photoPage, setPhotoPage] = useState(1)
   const [showModal, setShowModal] = useState(false)
-  const [selectedPhoto, setSelectedPhoto] = useState<{ url: string; title: string } | null>(null)
+  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null)
   const { isAuthenticated } = useAuthStore()
 
+  const ITEMS_PER_PAGE = 12
+  const PHOTOS_PER_PAGE = 8
+
+  // 사진 페이지네이션 계산
+  const paginatedPhotos = photoGallery.slice(
+    (photoPage - 1) * PHOTOS_PER_PAGE,
+    photoPage * PHOTOS_PER_PAGE
+  )
+  const totalPhotoPages = Math.ceil(photoGallery.length / PHOTOS_PER_PAGE)
+
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ['videos', category, page],
-    queryFn: () => videosApi.getList({ category: category || undefined, page, pageSize: 12 })
+    queryKey: ['videos', category, videoPage],
+    queryFn: () => videosApi.getList({ category: category || undefined, page: videoPage, pageSize: ITEMS_PER_PAGE })
       .then(r => r.data),
     enabled: tab === 'video',
   })
+
+  const totalVideoPages = data?.totalPages || 1
 
   return (
     <div>
@@ -188,7 +267,10 @@ export default function VideoPage() {
       {/* 동영상/사진 탭 */}
       <div className="flex gap-2 mb-6">
         <button
-          onClick={() => setTab('video')}
+          onClick={() => {
+            setTab('video')
+            setVideoPage(1)
+          }}
           className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-colors ${
             tab === 'video'
               ? 'bg-green-600 text-white'
@@ -197,7 +279,10 @@ export default function VideoPage() {
           ▶ 동영상
         </button>
         <button
-          onClick={() => setTab('photo')}
+          onClick={() => {
+            setTab('photo')
+            setPhotoPage(1)
+          }}
           className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-colors ${
             tab === 'photo'
               ? 'bg-green-600 text-white'
@@ -213,7 +298,7 @@ export default function VideoPage() {
           <div className="flex gap-2 mb-6 flex-wrap">
             {CATEGORIES.map(cat => (
               <button key={cat.value}
-                onClick={() => { setCategory(cat.value); setPage(1) }}
+                onClick={() => { setCategory(cat.value); setVideoPage(1) }}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                   category === cat.value
                     ? 'bg-red-600 text-white'
@@ -229,32 +314,104 @@ export default function VideoPage() {
           ) : data?.items?.length === 0 ? (
             <div className="py-20 text-center text-gray-400">등록된 영상이 없습니다.</div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {data?.items.map((video: VideoList) => (
-                <VideoCard key={video.id} video={video} />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
+                {data?.items.map((video: VideoList) => (
+                  <VideoCard key={video.id} video={video} />
+                ))}
+              </div>
+
+              {/* 동영상 페이지네이션 */}
+              {totalVideoPages > 1 && (
+                <div className="flex items-center justify-center gap-2 mt-8">
+                  <button
+                    onClick={() => setVideoPage(prev => Math.max(prev - 1, 1))}
+                    disabled={videoPage === 1}
+                    className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <ChevronLeft size={20} />
+                  </button>
+                  
+                  <div className="flex gap-1">
+                    {Array.from({ length: totalVideoPages }, (_, i) => i + 1).map(page => (
+                      <button
+                        key={page}
+                        onClick={() => setVideoPage(page)}
+                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                          videoPage === page
+                            ? 'bg-red-600 text-white'
+                            : 'bg-white border border-gray-200 hover:border-red-300'
+                        }`}>
+                        {page}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={() => setVideoPage(prev => Math.min(prev + 1, totalVideoPages))}
+                    disabled={videoPage === totalVideoPages}
+                    className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <ChevronRight size={20} />
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </>
       )}
 
       {/* 사진 탭 */}
       {tab === 'photo' && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {photoGallery.map(photo => (
-            <button key={photo.id}
-              onClick={() => setSelectedPhoto(photo)}
-              className="group relative aspect-square rounded-xl overflow-hidden border border-gray-200">
-              <img src={photo.url} alt={photo.title}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
-                <p className="text-white text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity px-2 text-center">
-                  {photo.title}
-                </p>
+        <>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
+            {paginatedPhotos.map((photo, index) => (
+              <button key={photo.id}
+                onClick={() => setSelectedPhotoIndex((photoPage - 1) * PHOTOS_PER_PAGE + index)}
+                className="group relative aspect-square rounded-xl overflow-hidden border border-gray-200 hover:border-green-500 transition-colors">
+                <img src={photo.url} alt={photo.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                  <p className="text-white text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity px-2 text-center">
+                    {photo.title}
+                  </p>
+                </div>
+              </button>
+            ))}
+          </div>
+
+          {/* 사진 페이지네이션 */}
+          {totalPhotoPages > 1 && (
+            <div className="flex items-center justify-center gap-2 mt-8">
+              <button
+                onClick={() => setPhotoPage(prev => Math.max(prev - 1, 1))}
+                disabled={photoPage === 1}
+                className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                <ChevronLeft size={20} />
+              </button>
+              
+              <div className="flex gap-1">
+                {Array.from({ length: totalPhotoPages }, (_, i) => i + 1).map(page => (
+                  <button
+                    key={page}
+                    onClick={() => setPhotoPage(page)}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      photoPage === page
+                        ? 'bg-green-600 text-white'
+                        : 'bg-white border border-gray-200 hover:border-green-300'
+                    }`}>
+                    {page}
+                  </button>
+                ))}
               </div>
-            </button>
-          ))}
-        </div>
+
+              <button
+                onClick={() => setPhotoPage(prev => Math.min(prev + 1, totalPhotoPages))}
+                disabled={photoPage === totalPhotoPages}
+                className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                <ChevronRight size={20} />
+              </button>
+            </div>
+          )}
+        </>
       )}
 
       {showModal && (
@@ -264,8 +421,12 @@ export default function VideoPage() {
         />
       )}
 
-      {selectedPhoto && (
-        <PhotoLightbox photo={selectedPhoto} onClose={() => setSelectedPhoto(null)} />
+      {selectedPhotoIndex !== null && (
+        <PhotoLightbox 
+          photos={photoGallery} 
+          initialIndex={selectedPhotoIndex} 
+          onClose={() => setSelectedPhotoIndex(null)} 
+        />
       )}
     </div>
   )
