@@ -24,6 +24,117 @@ const CATEGORY_COLOR: Record<string, string> = {
   Free: 'bg-gray-100 text-gray-600',
 }
 
+// 컨텐츠 렌더링 컴포넌트 (마크다운 파싱)
+function ContentRenderer({ content }: { content: string }) {
+  const renderContent = (text: string) => {
+    // 링크 렌더링: [text](url)
+    const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g
+    // 이미지 렌더링: ![url]
+    const imageRegex = /!\[([^\]]*)\]\(([^)]+)\)/g
+    // 동영상 렌더링: [video:videoId]
+    const videoRegex = /\[video:([a-zA-Z0-9_-]{11})\]/g
+
+    let parts: any[] = []
+    let lastIndex = 0
+    let key = 0
+
+    // 모든 정규식을 순차적으로 처리
+    const allMatches: any[] = []
+
+    let match
+    linkRegex.lastIndex = 0
+    while ((match = linkRegex.exec(text)) !== null) {
+      allMatches.push({ type: 'link', index: match.index, match })
+    }
+
+    imageRegex.lastIndex = 0
+    while ((match = imageRegex.exec(text)) !== null) {
+      allMatches.push({ type: 'image', index: match.index, match })
+    }
+
+    videoRegex.lastIndex = 0
+    while ((match = videoRegex.exec(text)) !== null) {
+      allMatches.push({ type: 'video', index: match.index, match })
+    }
+
+    // 인덱스로 정렬
+    allMatches.sort((a, b) => a.index - b.index)
+
+    // 순차적으로 렌더링
+    allMatches.forEach(({ type, match }) => {
+      const [fullMatch, ...groups] = match
+
+      if (match.index > lastIndex) {
+        parts.push(
+          <div key={key++} className="whitespace-pre-wrap">
+            {text.slice(lastIndex, match.index)}
+          </div>
+        )
+      }
+
+      if (type === 'link') {
+        const [linkText, url] = groups
+        parts.push(
+          <a
+            key={key++}
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 hover:underline font-medium">
+            {linkText}
+          </a>
+        )
+      } else if (type === 'image') {
+        parts.push(
+          <img
+            key={key++}
+            src={groups[1]}
+            alt={groups[0] || 'image'}
+            className="max-w-full h-auto rounded-lg my-4 border border-gray-200 shadow-sm"
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = 'none'
+            }}
+          />
+        )
+      } else if (type === 'video') {
+        const videoId = groups[0]
+        parts.push(
+          <div key={key++} className="my-6">
+            <iframe
+              width="100%"
+              height="400"
+              src={`https://www.youtube.com/embed/${videoId}`}
+              title="YouTube video"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="rounded-lg border border-gray-200 shadow-sm"
+            />
+          </div>
+        )
+      }
+
+      lastIndex = match.index + fullMatch.length
+    })
+
+    if (lastIndex < text.length) {
+      parts.push(
+        <div key={key++} className="whitespace-pre-wrap">
+          {text.slice(lastIndex)}
+        </div>
+      )
+    }
+
+    return parts.length > 0 ? parts : <div className="whitespace-pre-wrap">{text}</div>
+  }
+
+  return (
+    <div className="text-gray-700 leading-relaxed text-sm">
+      {renderContent(content)}
+    </div>
+  )
+}
+
 function CommentItem({ comment, onDelete, myNickname }: {
   comment: Comment
   onDelete: (id: number) => void
@@ -108,16 +219,16 @@ export default function PostDetailPage() {
   })
 
   const deleteCommentMutation = useMutation({
-  mutationFn: (commentId: number) =>
-    postsApi.deleteComment(Number(id), commentId),
-  onSuccess: () => {
-    toast.success('댓글이 삭제됐습니다.')
-    queryClient.invalidateQueries({ queryKey: ['post', id] })
-  },
-  onError: () => toast.error('댓글 삭제에 실패했습니다.'),
-})
+    mutationFn: (commentId: number) =>
+      postsApi.deleteComment(Number(id), commentId),
+    onSuccess: () => {
+      toast.success('댓글이 삭제됐습니다.')
+      queryClient.invalidateQueries({ queryKey: ['post', id] })
+    },
+    onError: () => toast.error('댓글 삭제에 실패했습니다.'),
+  })
 
-const likeMutation = useMutation({
+  const likeMutation = useMutation({
     mutationFn: () => postsApi.like(Number(id)),
     onSuccess: () => {
       setIsLiked(!isLiked)
@@ -133,6 +244,7 @@ const likeMutation = useMutation({
     },
     onError: () => toast.error('고정 처리에 실패했습니다.'),
   })
+
   const handleCommentSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!comment.trim()) return
@@ -189,7 +301,7 @@ const likeMutation = useMutation({
               </h1>
             </div>
 
-           {/* 수정/삭제 버튼 */}
+            {/* 수정/삭제 버튼 */}
             {(isAuthor || isAdmin) && (
               <div className="flex gap-2 flex-shrink-0">
                 {isAdmin && (
@@ -241,9 +353,7 @@ const likeMutation = useMutation({
 
         {/* 게시글 본문 */}
         <div className="px-6 py-6">
-          <div className="text-gray-700 leading-relaxed whitespace-pre-wrap text-sm">
-            {post.content}
-          </div>
+          <ContentRenderer content={post.content} />
         </div>
 
         {/* 좋아요 버튼 */}
@@ -279,12 +389,12 @@ const likeMutation = useMutation({
             </div>
           ) : (
             post.comments?.map((c: Comment) => (
-             <CommentItem
-              key={c.id}
-              comment={c}
-              onDelete={(commentId) => deleteCommentMutation.mutate(commentId)}
-              myNickname={user?.nickname}
-            />
+              <CommentItem
+                key={c.id}
+                comment={c}
+                onDelete={(commentId) => deleteCommentMutation.mutate(commentId)}
+                myNickname={user?.nickname}
+              />
             ))
           )}
         </div>
