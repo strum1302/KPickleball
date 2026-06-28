@@ -66,17 +66,21 @@ create: (data: { title: string; content: string; category: number }) =>
 }
 
 // ── Videos API ────────────────────────────────────
+// src/api/index.ts (또는 어디든 videosApi가 정의된 곳)
+
 export const videosApi = {
   getList: (params?: { category?: string; page?: number; pageSize?: number }) =>
     api.get('/videos', { params }),
   getById: (id: number) => api.get(`/videos/${id}`),
   create: (data: {
-    title: string; description: string
-    youTubeVideoId: string; thumbnailUrl: string; category: string
+    title: string; 
+    description?: string;  // optional
+    youTubeVideoId: string; 
+    thumbnailUrl?: string;  // optional
+    category: number  // ✅ string → number로 변경!
   }) => api.post('/videos', data),
   delete: (id: number) => api.delete(`/videos/${id}`),
 }
-
 // ── Clubs API ─────────────────────────────────────
 export const clubsApi = {
   getList: (params?: { state?: string; page?: number; pageSize?: number }) =>
