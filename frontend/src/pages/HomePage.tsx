@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { postsApi } from '../api'
+import { postsApi, videosApi } from '../api'
 
 // 샘플 클럽소식 (나중에 DB 연동)
 
@@ -53,19 +53,20 @@ export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0)
   const [imgErrors, setImgErrors] = useState<boolean[]>([false, false, false])
 
-// 공지사항 DB에서 가져오기 (category: 0 = Notice)
+  // 공지사항 DB에서 가져오기 (category: 0 = Notice)
   const { data: noticeData } = useQuery({
     queryKey: ['notices'],
     queryFn: () => postsApi.getList({ category: '0', page: 1, pageSize: 5 })
       .then(r => r.data),
   })
 
-  // 클럽소식 DB에서 가져오기 (category: 5 = ClubNews)
-  const { data: clubNewsData } = useQuery({
-    queryKey: ['clubNews'],
-    queryFn: () => postsApi.getList({ category: '5', page: 1, pageSize: 5 })
+  // 레슨 영상 DB에서 가져오기 - videosApi 사용
+  const { data: lessonVideosData } = useQuery({
+    queryKey: ['lessonVideos'],
+    queryFn: () => videosApi.getList({ page: 1, pageSize: 5 })
       .then(r => r.data),
   })
+
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide(prev => (prev + 1) % bannerSlides.length)
@@ -97,18 +98,21 @@ export default function HomePage() {
         { id: 5, title: '피클볼 장비 공동구매 안내', date: '2026-05-05', isNew: false },
       ]
 
-      // 클럽소식 - DB 데이터 또는 샘플 데이터
-  const clubNews = clubNewsData?.items?.length > 0
-    ? clubNewsData.items.map((p: any) => ({
-        id: p.id,
-        title: p.title,
-        date: p.createdAt?.slice(0, 10) || '',
+  // 레슨 영상 - DB 데이터 또는 샘플 데이터
+  const lessonVideos = lessonVideosData?.items?.length > 0
+    ? lessonVideosData.items.map((v: any) => ({
+        id: v.id,
+        title: v.title,
+        date: v.createdAt?.slice(0, 10) || '',
+        author: v.authorNickname,
+        views: v.viewCount,
+        youTubeVideoId: v.youTubeVideoId,
       }))
     : [
-        { id: 1, title: '[시카고 클럽] 주말 정기 모임 안내', date: '2026-05-27' },
-        { id: 2, title: '[LA 클럽] 신규 회원 모집 중', date: '2026-05-25' },
-        { id: 3, title: '[뉴욕 클럽] 대회 참가 후기', date: '2026-05-22' },
-        { id: 4, title: '[달라스 클럽] 코트 예약 안내', date: '2026-05-18' },
+        { id: 1, title: '키친 앞 발리 피딩 연습', date: '2026-05-27', author: '테스터', views: 150, youTubeVideoId: 'dQw4w9WgXcQ' },
+        { id: 2, title: '발리 기초 마스터하기', date: '2026-05-25', author: '코치 박', views: 320, youTubeVideoId: 'dQw4w9WgXcQ' },
+        { id: 3, title: '써드샷 공략법', date: '2026-05-22', author: '프로 선수', views: 450, youTubeVideoId: 'dQw4w9WgXcQ' },
+        { id: 4, title: '백핸드 슬라이스 배우기', date: '2026-05-18', author: '테스터', views: 280, youTubeVideoId: 'dQw4w9WgXcQ' },
       ]
 
   return (
@@ -180,7 +184,7 @@ export default function HomePage() {
       {/* 메인 콘텐츠 */}
       <div className="px-4 py-8 max-w-6xl mx-auto">
 
-        {/* 2컬럼 - 뉴스/클럽소식 */}
+        {/* 2컬럼 - 뉴스/레슨영상 */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
 
           {/* 뉴스 및 공지 - DB 연동 */}
@@ -212,22 +216,28 @@ export default function HomePage() {
             </ul>
           </div>
 
-          {/* 클럽 소식 */}
+          {/* 레슨 영상 - videosApi 연동 */}
           <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gray-50">
               <h3 className="font-bold text-gray-800 flex items-center gap-2">
-                <span className="w-1 h-5 bg-blue-600 rounded-full inline-block"></span>
-                클럽 소식
+                <span className="w-1 h-5 bg-red-600 rounded-full inline-block"></span>
+                레슨 영상
               </h3>
-              <Link to="/board?category=5" className="text-xs text-gray-500 hover:text-blue-600">더보기 +</Link>
+              <Link to="/gallery" className="text-xs text-gray-500 hover:text-red-600">더보기 +</Link>
             </div>
             <ul className="divide-y divide-gray-100">
-           {clubNews.map((n: any) => (
-                <li key={n.id}>
-                  <Link to={`/board/${n.id}`}
-                    className="flex items-center justify-between px-4 py-2.5 hover:bg-blue-50 transition-colors group">
-                    <span className="text-sm text-gray-700 group-hover:text-blue-700 truncate">{n.title}</span>
-                    <span className="text-xs text-gray-400 flex-shrink-0 ml-2">{n.date.slice(5)}</span>
+              {lessonVideos.map((v: any) => (
+                <li key={v.id}>
+                  <Link to="/gallery"
+                    className="flex items-center justify-between px-4 py-2.5 hover:bg-red-50 transition-colors group">
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <span className="flex-shrink-0 text-red-500">▶</span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm text-gray-700 group-hover:text-red-700 truncate">{v.title}</p>
+                        <p className="text-xs text-gray-400">{v.author} • 조회 {v.views}</p>
+                      </div>
+                    </div>
+                    <span className="text-xs text-gray-400 flex-shrink-0 ml-2">{v.date?.slice(5)}</span>
                   </Link>
                 </li>
               ))}
@@ -260,7 +270,7 @@ export default function HomePage() {
           </ul>
         </div>
 
-       {/* 갤러리 - 임시 숨김 처리 (추후 활성화 예정) */}
+        {/* 갤러리 - 임시 숨김 처리 (추후 활성화 예정) */}
 
         {/* 하단 바로가기 */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
