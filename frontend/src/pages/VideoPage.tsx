@@ -26,7 +26,12 @@ const photoGallery = [
   { id: 8, url: '/images/gallery/061926_8.jpg', title: '2026 6월 21일 8시 모임' },
   { id: 9, url: '/images/gallery/061926_9.jpg', title: '2026 6월 21일 8시 모임' },
 ]
-
+const CATEGORY_MAP: Record<VideoCategory, number> = {
+  'Lesson': 1,
+  'Match': 2,
+  'Highlight': 3,
+  'Tips': 4,
+}
 function VideoCard({ video }: { video: VideoList }) {
   const [playing, setPlaying] = useState(false)
 
@@ -84,19 +89,23 @@ function AddVideoModal({ onClose, onSuccess }: { onClose: () => void; onSuccess:
     return match ? match[1] : url
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    try {
-      const videoId = extractVideoId(form.youTubeVideoId)
-      await videosApi.create({ ...form, youTubeVideoId: videoId })
-      onSuccess()
-      onClose()
-    } finally {
-      setLoading(false)
-    }
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault()
+  setLoading(true)
+  try {
+    const videoId = extractVideoId(form.youTubeVideoId)
+    const categoryId = CATEGORY_MAP[form.category]  // ✅ 변환!
+    await videosApi.create({ 
+      ...form, 
+      youTubeVideoId: videoId,
+      category: categoryId  // ✅ 숫자로 전송!
+    })
+    onSuccess()
+    onClose()
+  } finally {
+    setLoading(false)
   }
-
+}
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl w-full max-w-lg p-6">
