@@ -228,7 +228,7 @@ export default function HomePage() {
             <ul className="divide-y divide-gray-100">
               {lessonVideos.map((v: any) => (
                 <li key={v.id}>
-                  <Link to="/gallery"
+                  <Link to="/videos"
                     className="flex items-center justify-between px-4 py-2.5 hover:bg-red-50 transition-colors group">
                     <div className="flex items-center gap-2 min-w-0 flex-1">
                       <span className="flex-shrink-0 text-red-500">▶</span>
