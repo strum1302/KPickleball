@@ -223,7 +223,7 @@ export default function HomePage() {
                 <span className="w-1 h-5 bg-red-600 rounded-full inline-block"></span>
                 레슨 영상
               </h3>
-              <Link to="/gallery" className="text-xs text-gray-500 hover:text-red-600">더보기 +</Link>
+              <Link to="/videos" className="text-xs text-gray-500 hover:text-red-600">더보기 +</Link>
             </div>
             <ul className="divide-y divide-gray-100">
               {lessonVideos.map((v: any) => (
